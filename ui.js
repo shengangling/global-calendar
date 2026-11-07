@@ -137,8 +137,8 @@ sc.addEventListener('wheel',e=>{if(e.ctrlKey)return;
   const mouse=e.deltaMode===1||(e.wheelDeltaY&&Math.abs(e.wheelDeltaY)%120===0&&Math.abs(e.deltaY)>=40&&e.deltaX===0);
   if(!mouse)return;e.preventDefault();animateToRow((animRow!==null?animRow:sc.scrollTop/rowH)+Math.sign(e.deltaY)*0.85,420)},{passive:false});
 new ResizeObserver(()=>layout()).observe(sc);
-sp.addEventListener('click',e=>{const c=e.target.closest('.cell');if(c)select(+c.dataset.j)});
-sp.addEventListener('dblclick',e=>{const c=e.target.closest('.cell');if(c){select(+c.dataset.j);setTab('ev');setTimeout(()=>{const t=$('eT');if(t)t.focus()},30)}});
+sp.addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c)return;const J=+c.dataset.j;if(isM()&&J===st.sel){openSheet('info');return}select(J)});
+sp.addEventListener('dblclick',e=>{const c=e.target.closest('.cell');if(c){select(+c.dataset.j);if(isM())openSheet('ev');else setTab('ev');setTimeout(()=>{const t=$('eT');if(t)t.focus()},30)}});
 
 /* ---------- 年视图 ---------- */
 const yearStatsCache={};
@@ -163,7 +163,7 @@ function renderYear(){const y=vy;let h='<div class="yv">';const wd=[1,2,3,4,5,6,
     h+='</div></div>'}
   h+=`</div><div class="ylegend">${ka?`<span><em style="background:var(--cn-wash);box-shadow:inset 0 0 0 1px var(--cn)"></em>${nA}放假</span>`:''}${cv?'<span><em style="box-shadow:inset 0 0 0 1px var(--faint)"></em>中国调休上班</span>':''}${kb?`<span><em style="background:var(--ae-wash);box-shadow:inset 0 -2px 0 var(--ae)"></em>${nB}放假</span>`:''}<span><em style="background:var(--cn);width:6px;height:6px;border-radius:50%"></em>节日</span>${cv?'<span><em style="background:var(--term);width:6px;height:6px;border-radius:50%"></em>节气</span>':''}<span><em style="background:var(--ev1);width:6px;height:6px;border-radius:50%"></em>我的事件</span><span>单击查看详情 · 双击打开该月</span></div>`;
   $('yBody').innerHTML=h}
-$('yBody').addEventListener('click',e=>{const d=e.target.closest('.yd');if(d){select(+d.dataset.j);return}
+$('yBody').addEventListener('click',e=>{const d=e.target.closest('.yd');if(d){const J=+d.dataset.j;if(isM()&&J===st.sel){openSheet('info');return}select(J);return}
   const mh=e.target.closest('.ym-h');if(mh)openMonth(vy,+mh.dataset.mm)});
 $('yBody').addEventListener('dblclick',e=>{const d=e.target.closest('.yd');if(d){const J=+d.dataset.j,g=ymd(J);openMonth(g.y,g.m,J)}});
 
@@ -218,7 +218,7 @@ function renderHead(animate){const y=curYear();$('yBtn').textContent=y;
   if(animate&&!RM)$('tMonth').parentNode.animate([{opacity:.25},{opacity:1}],{duration:260,easing:'ease-out'})}
 
 /* ---------- 视图切换与导航 ---------- */
-function setView(v,keepScroll){S.view=v;save();
+function setView(v,keepScroll){S.view=v;save();setTimeout(mDay,0);
   $('vMonth').hidden=v!=='month';$('vYear').hidden=v!=='year';$('vList').hidden=v!=='list';
   if(v==='month'){requestAnimationFrame(()=>{layout();if(!keepScroll){const fm=focus%12+1;if(Math.floor(focus/12)!==vy){sc.scrollTop=monthTop(vy,fm)}}paint();updateFocus(true)})}
   else{if(v==='year')renderYear();else renderList();
@@ -351,7 +351,7 @@ function renderInfo(){const J=st.sel,{cn,ae}=info(J),g=cn.g,L=cn.L,h=ae.h,doy=J-
   ${up?`<div class="p-sec"><span class="p-lab">接下来</span><div class="up">${up}</div></div>`:''}
   <div class="p-sec"><p class="note">中国放假与调休按国务院公布的安排（内置 2023–2027 年，联网时自动同步最新公告），未公布的年份按近年国务院排法推算（含补班日）并标注“推算”。其他国家假期来自各国官方公布日期（内置 2021–2031 年，联网自动更新），范围之外的年份按历年规律推算；未正式确认的标注“暂定”。${holSyncTxt()}双击月历中的某天可直接添加事件。</p></div>`;
   $('btnCopy').onclick=()=>doCopy(copyText(J))}
-$('pInfo').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)goDay(+b.dataset.go)});
+$('pInfo').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){if(isM())closeSheet();goDay(+b.dataset.go)}});
 
 /* 日期计算 */
 function buildCalc(){
@@ -418,7 +418,7 @@ function renderEvents(){const J=st.sel,ed=editId!=null?DB.events.find(e=>e.id===
     const base=R==='lunar'&&L?`农历 ${LM[L.m-1]}月${ldName(L.d)}${L.leap?'（闰月按正常月份计）':''}，每年重复`:R==='solar'?`每年 ${ymd(D).m}月${ymd(D).d}日重复`:`${fmtFull(D)}（农历${lunarTxt(D)}）`;
     const Z=$('eZ').value,[hh,mm]=($('eH').value||'09:00').split(':').map(Number),g0=ymd(D);
     const zt=Z&&Z!==LOCAL_TZ?`按${tzName(Z)} ${$('eH').value||'09:00'} 提醒（本机时间 ${hhmm(zonedMs(g0.y,g0.m,g0.d,hh,mm,Z))}）`:`按本机时间（${localTzTxt()}）${$('eH').value||'09:00'} 提醒`;
-    $('eHint').textContent=base+($('eM').value?`。${zt}，到时会发 macOS 通知${NATIVE?'并推送到已开启的手机渠道，App 关闭后通知也会准时弹出':''}。`:'')};
+    $('eHint').textContent=base+($('eM').value?`。${zt}，${NATIVE?'到时会发 macOS 通知并推送到已开启的手机渠道，App 关闭后通知也会准时弹出':'到时按下方已开启的方式提醒（网页需开着）；想关掉网页也能收到，请导出到手机日历'}。`:'')};
   ['eD','eR','eM','eH','eZ'].forEach(i=>$(i).oninput=hint);hint();
   $('eC').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;color=+b.dataset.c;if(!ed)evColor=color;[...$('eC').children].forEach(x=>x.classList.toggle('on',x===b))};
   const add=()=>{const t=$('eT').value.trim(),D=isoJ($('eD').value),R=$('eR').value,M=$('eM').value;if(!t){$('eT').focus();toast('请填写事件名称');return}if(isNaN(D)){toast('请选择日期');return}
@@ -541,7 +541,24 @@ window.__calTestRes=(icloud,hm)=>{const el=$('calTestSt'),t=icloud?`已建测试
 window.__calRes=(ok,msg)=>{const was=calOK;calOK=ok;calMsg=msg;const el=$('calSt');if(el){el.textContent=(ok?'✓ ':'✕ ')+msg;el.style.color=ok?'var(--ae)':'var(--cn)'}if(ok!==was)scheduleReminders()};
 /* 原生端到点已送达（含睡眠后补发）：记下来，避免跨天重载后再补发一次 */
 window.__delivered=id=>{DB.sent=DB.sent||[];if(!DB.sent.includes(id)){DB.sent.push(id);DB.sent=DB.sent.slice(-300);save()}};
-function renderPanel(){if(tab==='info')renderInfo();else if(tab==='calc')renderCalc();else renderEvents()}
+function renderPanel(){if(tab==='info')renderInfo();else if(tab==='calc')renderCalc();else renderEvents();mDay()}
+/* ---------- 手机端：选中日摘要条、底部导航、底部弹出面板 ---------- */
+const MQ=matchMedia('(max-width:700px)'),isM=()=>MQ.matches;
+function mDay(){const el=$('mDay');if(!el)return;const show=isM()&&S.view!=='list';el.hidden=!show;$('vMonth').parentNode.classList.toggle('has-day',show);mNavOn();if(!show)return;
+  const J=st.sel,g=ymd(J),L=lunar(J),s=statusOf(J);
+  el.innerHTML=`<span class="d">${g.d}</span><span class="m"><b>${g.y}年${g.m}月${g.d}日 星期${WK_CN[wday(J)]}${J===TODAY?' · 今天':''}</b><span>${L?'农历'+lmName(L)+ldName(L.d)+' · ':''}${s.map(x=>`<i style="color:var(--${x.col})">${esc(x.n)}</i> ${x.st.t}${x.st.t==='放假'&&x.st.s?' '+esc(x.st.s.split(' · ')[0]):''}`).join('　')}</span></span><span class="go">详情<svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>`}
+function mNavOn(){const nav=$('mNav');if(!nav)return;const open=$('panel').classList.contains('open');
+  [...nav.children].forEach(b=>b.classList.toggle('on',open&&tab!=='info'?b.dataset.n===tab:b.dataset.n===S.view))}
+function openSheet(t){closePops();setTab(t);$('panel').classList.add('open');$('sheetBg').classList.add('on');$('panel').scrollTop=0;mNavOn()}
+function closeSheet(){$('panel').classList.remove('open');$('sheetBg').classList.remove('on');mNavOn()}
+$('mDay').onclick=()=>openSheet('info');
+$('sheetBg').onclick=closeSheet;$('sheetX').onclick=e=>{e.stopPropagation();closeSheet()};
+$('mNav').onclick=e=>{const b=e.target.closest('[data-n]');if(!b)return;const n=b.dataset.n;
+  if(n==='calc'||n==='ev'){openSheet(n);return}closeSheet();if(n!==S.view)setView(n);else if(n==='month')$('today').click();mDay()};
+// 在面板顶部向下滑动关闭
+{let y0=null;$('tabs').addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});
+  $('tabs').addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>60)closeSheet();y0=null},{passive:true})}
+MQ.addEventListener('change',()=>{if(!isM())closeSheet();mDay();requestAnimationFrame(()=>{layout();paint()})});
 
 /* ---------- 搜索与跳转（⌘K） ---------- */
 let sItems=[],sAct=0,sT=0;
@@ -586,7 +603,7 @@ document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&['1','2','3'].includes(e.key)){e.preventDefault();setView(['month','year','list'][+e.key-1]);return}
   if(!$('search').hidden)return;
   const tg=e.target.tagName;if(tg==='INPUT'||tg==='SELECT'||tg==='TEXTAREA'){if(e.key==='Escape')e.target.blur();return}
-  if(e.key==='Escape'){closePops();return}
+  if(e.key==='Escape'){closePops();if(isM())closeSheet();return}
   const k=e.key;
   if(k==='/'){e.preventDefault();openSearch()}
   else if(k==='ArrowLeft'||k==='PageUp'){step(-1);e.preventDefault()}
@@ -641,12 +658,12 @@ async function syncHolidays(manual){if(holBusy)return;holBusy=true;const H=DB.ho
   const y0=new Date().getFullYear();
   const yrs=[y0-1,y0,y0+1,y0+2];if(!H.hist){for(let y=2007;y<y0-1;y++)yrs.push(y)}
   for(const y of yrs){try{const j=await firstOk(CN_SRC(y),t=>JSON.parse(t));const days=(j.days||[]).map(d=>({date:d.date,name:d.name,isOffDay:!!d.isOffDay}));
-      if(days.length&&JSON.stringify(days)!==JSON.stringify(H.cn[y])){const builtin=y>=2023&&y<=2027;if(H.cn[y]||!builtin)news.push(`${y} 年中国放假安排`);H.cn[y]=days}}catch(e){}}
+      if(days.length&&JSON.stringify(days)!==JSON.stringify(H.cn[y])){const builtin=y>=2023&&y<=2027;if(H.cn[y]||(!builtin&&y>=y0))news.push(`${y} 年中国放假安排`);H.cn[y]=days}}catch(e){}}
   try{const ae=NATIVE?await firstOk([AE_ICS],parseAeIcs):(await webNet()).ae;if(!Array.isArray(ae)||ae.length<5)throw'无数据';const key=x=>JSON.stringify(x);if(key(ae)!==key(H.ae)){if(H.ae)news.push('阿联酋假期日期');H.ae=ae}}catch(e){}
   for(const sl of SEL()){const r=await syncOne(H,sl.k);if(r)news.push(r)}
   if(Object.keys(H.cn).some(y=>+y<2015))H.hist=1;H.at=Date.now();DB.hol=H;holBusy=false;
   Object.keys(H.cn).sort().forEach(y=>applyCnNet(y,H.cn[y]));applyAeNet(H.ae);applyXNet(H.x);
-  save();Object.keys(yearStatsCache).forEach(k=>delete yearStatsCache[k]);refreshAll();if(news.length)toast('已同步最新官方公告：'+news.join('、'));else if(manual)toast('节假日数据已是最新')}
+  save();Object.keys(yearStatsCache).forEach(k=>delete yearStatsCache[k]);refreshAll();if(news.length)toast(news.length>3?`已同步最新官方公告（${news.length} 项）`:'已同步最新官方公告：'+news.join('、'));else if(manual)toast('节假日数据已是最新')}
 
 /* ---------- 天气（Open-Meteo，免费免密钥；App 内由系统网络栈代取） ---------- */
 let nfId=0;const nfP={};window.__nf=(id,ok,txt)=>{const p=nfP[id];if(!p)return;delete nfP[id];ok?p.res(txt):p.rej(txt)};
@@ -728,6 +745,11 @@ window.__setSetting=(k,v)=>{if(k==='countries'&&v&&typeof v==='object')Object.as
 window.__goDay=J=>{if(S.view!=='month')setView('month',true);setTimeout(()=>goDay(+J),60)};
 window.setMbFmt=f=>{S.mbFmt=f;save();if(!$('themePop').hidden)drawThemePop()};
 window.openSettings=(custom=true)=>{closePops();drawThemePop();placePop($('themePop'),$('btnTheme'),true);const c=$('mbCustom');if(c&&custom){$('mbSel').value='__c';c.hidden=false;$('mbTok').hidden=false;c.focus()}};
+/* ---------- 离线：网页版用 Service Worker 缓存全部文件，断网也能打开 ---------- */
+if(!NATIVE&&'serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  addEventListener('offline',()=>toast('已离线：日历照常可用，天气和假期更新待联网'));
+  addEventListener('online',()=>{toast('已恢复联网');syncHolidays();refreshWx(true)})}
 /* ---------- 启动 ---------- */
 applyTheme();
 layBtns();

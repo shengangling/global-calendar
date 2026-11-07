@@ -2,10 +2,14 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>环球万年历</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="公历、农历、节气、伊斯兰历与 33 个国家和地区的公共假期，最多同时对照两个国家。">
-<link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="环球万年历">
+<meta name="theme-color" content="#E9E4DA">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon-180.png">
+<title>环球万年历</title>
 <script>try{var s=window.__STORE__||JSON.parse(localStorage.getItem('wnl-data')||'null');var t=s&&s.settings&&s.settings.theme;if(!s||!s.settings||!s.settings.v)t='paper';document.documentElement.dataset.theme=t||'paper'}catch(e){document.documentElement.dataset.theme='paper'}</script>
 <style>
 /* 布局：一屏应用 —— 左侧主视图（月/年/假期），右侧分页详情栏；红 = 第一个国家，绿 = 第二个国家，蓝 = 节气 */
@@ -397,6 +401,89 @@ svg.wxi{stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stro
 @media (max-width:1080px){.app{grid-template-columns:minmax(0,1fr) 300px}.cols{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.panel{display:none}.yv{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- 手机端（≤700px）：紧凑头部 + 底部导航 + 选中日摘要条 + 底部弹出详情 ---------- */
+.mnav,.mday,.sheet-x,.sheet-bg{display:none}
+.mday[hidden]{display:none!important}
+@media (max-width:700px){
+  html,body{height:100%}
+  body{padding:calc(env(safe-area-inset-top) + 6px) 8px 0;font-size:13px}
+  .app{display:block;height:100%}
+  .stage{height:100%;gap:8px;padding-bottom:calc(env(safe-area-inset-bottom) + 64px)}
+  .head{gap:7px}
+  .h1{flex-wrap:nowrap;align-items:center;gap:8px}
+  .h1>div:first-child{flex:1 1 auto}
+  .title{gap:8px}.t-month{font-size:24px}.t-year{font-size:22px}
+  .t-sub{font-size:11px;margin-top:3px;height:15px;line-height:15px;gap:8px}
+  .h-right{gap:6px;flex-wrap:nowrap}
+  #views,.clock,.kbd{display:none!important}
+  #btnTheme{font-size:0;gap:0}#btnTheme .ic{width:17px;height:17px}
+  .pill>button{padding:0 9px}
+  .wxchip{padding:0 9px}.wxchip span{display:none}
+  /* 第一行：年份 · 国家 · 今天；第二行：1–12 月铺满整行 */
+  .h2{flex-wrap:wrap;gap:6px}
+  .h2>*{flex:none}
+  .h2 .grow{display:none}
+  .h2 .ystep{order:1}
+  .h2 .pill[role=group]{order:2;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+  .h2 .pill[role=group]::-webkit-scrollbar{display:none}
+  .h2 .pill[role=group] button{flex:none}
+  .h2>.pill:last-child{order:3}
+  #prev,#next{display:none!important}
+  .ystep .ybtn{min-width:52px}
+  .months{order:4;flex:1 1 100%;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0;padding:2px}
+  .months button{min-width:0;padding:0;height:28px;font-size:12.5px}.months .mo{display:none}
+  .cal{border-radius:14px}
+  .wk div{padding:7px 0;justify-content:center;font-size:11.5px}
+  .wk div small{display:none}
+  .cell{padding:5px 4px 4px;align-items:center;text-align:center}
+  .cell .c-top{width:100%;justify-content:center;position:relative}
+  .num{font-size:19px}
+  .mlab,.wn{display:none}
+  .tags{position:absolute;right:-1px;top:-2px}
+  .tag{font-size:8.5px;padding:0 2px;line-height:12px;min-width:0}
+  .c-bot{width:100%;align-items:center}
+  .l1{font-size:10px}.l2{font-size:9.5px}
+  .l2:not(.fest):not(.term){display:none}
+  .ev{font-size:9.5px;padding:0 3px}
+  .yv{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
+  .ylegend{font-size:11px;gap:8px 12px}
+  .cols{grid-template-columns:minmax(0,1fr);gap:14px}
+  .lv h2{flex-direction:column;align-items:flex-start;gap:3px}
+  .lv h2 small{margin-left:0}
+  .tr{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
+  .tr .d{grid-column:1/-1;grid-row:2}
+  .terms{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .yscroll{padding:14px 12px}
+  .pop{max-width:calc(100vw - 16px);max-height:calc(100vh - 140px);overflow:auto}
+  .ctpop,.wxpop{width:calc(100vw - 16px)}
+  .ct-g{grid-template-columns:repeat(3,1fr)}
+  .th-g{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .toast{bottom:calc(env(safe-area-inset-bottom) + 126px);max-width:calc(100vw - 32px);white-space:normal;text-align:center}
+  /* 选中日摘要条 */
+  .mday{display:flex;position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 62px);z-index:20;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);text-align:left}
+  .mday .d{font-family:var(--f-num);font-size:26px;font-weight:600;line-height:1;min-width:30px;text-align:center}
+  .mday .m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .mday .m b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mday .m span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mday .m span i{font-style:normal;font-weight:600}
+  .mday .go{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:2px;flex:none}
+  .stage.has-day{padding-bottom:calc(env(safe-area-inset-bottom) + 124px)}
+  /* 底部导航 */
+  .mnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-top:1px solid var(--line);padding:4px 4px env(safe-area-inset-bottom)}
+  .mnav button{display:flex;flex-direction:column;align-items:center;gap:2px;height:52px;justify-content:center;font-size:10.5px;font-weight:600;color:var(--muted)}
+  .mnav button .ic{width:21px;height:21px}
+  .mnav button.on{color:var(--accent,var(--ink))}
+  /* 底部弹出：详情 / 计算 / 事件 */
+  .sheet-bg{display:block;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s}
+  .sheet-bg.on{opacity:1;pointer-events:auto}
+  .panel{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:41;height:min(86vh,calc(100% - env(safe-area-inset-top) - 30px));border-radius:18px 18px 0 0;border-bottom:0;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.75,.2,1);padding-bottom:env(safe-area-inset-bottom);visibility:hidden}
+  .panel.open{transform:none;visibility:visible}
+  .tabs{padding:6px 8px 0;align-items:center}
+  .tabs button{padding:10px 10px 11px}
+  .sheet-x{display:flex;margin-left:auto;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:var(--muted);background:var(--wash)}
+  .overlay{padding:calc(env(safe-area-inset-top) + 10px) 8px 0;align-items:flex-start}
+  .overlay>div{width:100%!important;max-width:none!important}
+}
 </style>
 <style id="dim"></style>
 </head>
@@ -457,6 +544,7 @@ svg.wxi{stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stro
       <button data-t="info" class="on">详情</button>
       <button data-t="calc">日期计算</button>
       <button data-t="ev">我的事件</button>
+      <button class="sheet-x" id="sheetX" title="关闭" aria-label="关闭"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="pane" id="pInfo"></div>
     <div class="pane" id="pCalc" hidden></div>
@@ -464,6 +552,15 @@ svg.wxi{stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stro
   </aside>
 </div>
 
+<button class="mday" id="mDay" aria-label="查看这一天的详情"></button>
+<div class="sheet-bg" id="sheetBg"></div>
+<nav class="mnav" id="mNav" aria-label="导航">
+  <button data-n="month"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>月历</button>
+  <button data-n="year"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>全年</button>
+  <button data-n="list"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>假期</button>
+  <button data-n="calc"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg>计算</button>
+  <button data-n="ev"><svg class="ic" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>事件</button>
+</nav>
 <div class="pop" id="yearPop" hidden></div>
 <div class="pop" id="themePop" hidden></div>
 <div class="pop wxpop" id="wxPop" hidden></div>

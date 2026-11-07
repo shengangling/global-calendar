@@ -1,0 +1,16 @@
+{
+  "name": "环球万年历",
+  "short_name": "环球万年历",
+  "description": "公历、农历、节气、伊斯兰历与 33 个国家和地区的公共假期",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9E4DA",
+  "theme_color": "#E9E4DA",
+  "lang": "zh-CN",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
