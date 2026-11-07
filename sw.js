@@ -1,7 +1,7 @@
 /* 环球万年历 · 离线缓存
  * 联网时优先取最新文件（3 秒没响应就用缓存），并顺手更新缓存；断网时直接用缓存，日历完整可用。
  * 天气、中国放假公告等跨站请求不经过这里，断网时由页面提示“离线”。 */
-const CACHE='wnl-v1';
+const CACHE='wnl-v2';
 const CORE=['./','index.html','core.js','countries.js','holdata.js','ui.js','netdata.json','manifest.webmanifest','icon.png','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
